@@ -1,154 +1,161 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Admin')
+@section('title', 'Admin Dashboard')
+@section('page_title', 'Dashboard Overview')
 
 @section('content')
-<style>
-:root{
-  --bg:#f8fafc;
-  --card:#ffffff;
-  --muted:#6b7280;
-  --accent-blue-start:#3b82f6;
-  --accent-blue-end:#1e40af;
-  --glass: rgba(255,255,255,0.6);
-  --shadow: 0 8px 24px rgba(2,6,23,0.08);
-}
-
-*{box-sizing:border-box}
-body{background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;color:#0f172a;margin:0;padding:0}
-.header-wrap{background:linear-gradient(135deg,var(--accent-blue-start),var(--accent-blue-end));border-radius:12px;padding:28px 26px;color:#fff;box-shadow:var(--shadow);margin-bottom:28px}
-.header-inner{display:flex;align-items:center;gap:14px}
-.header-inner .title{font-size:22px;font-weight:700;margin:0}
-.header-inner .sub{font-size:14px;color:rgba(255,255,255,0.92);margin:0}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px;
-  align-items:stretch;
-}
-@media (max-width:980px){ .grid{grid-template-columns:repeat(2,1fr)} }
-@media (max-width:640px){ .grid{grid-template-columns:1fr} .header-inner{flex-direction:column;align-items:flex-start} }
-
-.card{
-  background:var(--card);
-  border-radius:12px;
-  padding:18px;
-  display:flex;
-  gap:14px;
-  align-items:center;
-  border:1px solid rgba(15,23,42,0.04);
-  box-shadow:0 6px 18px rgba(12,18,43,0.04);
-  transition:transform .18s ease,box-shadow .18s ease;
-}
-.card:hover{transform:translateY(-6px);box-shadow:0 16px 34px rgba(12,18,43,0.08)}
-.icon{
-  width:56px;height:56px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;flex-shrink:0;
-}
-.icon.blue{background:linear-gradient(135deg,#60a5fa,#2563eb)}
-.icon.green{background:linear-gradient(135deg,#4ade80,#16a34a)}
-.icon.yellow{background:linear-gradient(135deg,#facc15,#eab308)}
-.icon.red{background:linear-gradient(135deg,#f87171,#dc2626)}
-.stat-title{font-size:13px;color:var(--muted);margin:0}
-.stat-value{font-size:24px;font-weight:700;color:#0f172a;margin:6px 0 0}
-
-.chart-wrap{
-  margin-top:26px;background:var(--card);padding:20px;border-radius:12px;border:1px solid rgba(15,23,42,0.04);box-shadow:0 8px 24px rgba(12,18,43,0.04);
-}
-.chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.chart-head h2{font-size:16px;margin:0;color:#111827;font-weight:700}
-.canvas-container{height:320px;width:100%}
-.small-muted{font-size:13px;color:var(--muted);margin-top:6px}
-
-/* accessibility focus */
-a:focus,button:focus,input:focus,select:focus{outline:3px solid rgba(99,102,241,0.18);outline-offset:2px}
-</style>
-
-<div class="header-wrap">
-  <div class="header-inner">
-    <span data-lucide="crown" style="width:32px;height:32px"></span>
-    <div>
-      <p class="title">Selamat datang, {{ auth()->user()->name }}</p>
-      <p class="sub">Ini adalah halaman dashboard admin. Kelola data dan pantau aktivitas di sini.</p>
+<div class="space-y-8 animate-fade-in">
+    <!-- Welcome Header -->
+    <div class="relative overflow-hidden bg-brand-600 rounded-3xl p-8 text-white shadow-2xl shadow-brand-600/20">
+        <div class="relative z-10">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold mb-4 backdrop-blur-sm border border-white/10">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                <span>Sistem Aktif & Terpantau</span>
+            </div>
+            <h2 class="text-3xl font-extrabold mb-2">Selamat datang kembali, {{ auth()->user()->name }}! 👋</h2>
+            <p class="text-brand-100 max-w-2xl opacity-90 leading-relaxed">
+                Panel admin E-Learning siap membantu Anda mengelola data pengguna, absensi, dan tugas dengan lebih efisien hari ini.
+            </p>
+        </div>
+        <!-- Decorative abstract shape -->
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
     </div>
-  </div>
-</div>
 
-<div class="grid">
-  <div class="card">
-    <div class="icon blue" aria-hidden="true"><span data-lucide="users"></span></div>
-    <div>
-      <p class="stat-title">Jumlah User</p>
-      <p class="stat-value">{{ $jumlahUser }}</p>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Users Card -->
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 group hover:border-brand-500/50 transition duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-brand-50 rounded-2xl flex items-center justify-center text-brand-600 group-hover:scale-110 transition duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <span class="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">+12%</span>
+            </div>
+            <h4 class="text-slate-500 text-sm font-semibold mb-1">Total Pengguna</h4>
+            <div class="text-3xl font-black text-slate-900 tracking-tight">{{ $jumlahUser }}</div>
+            <p class="text-slate-400 text-xs mt-3 font-medium">Siswa & Guru terdaftar</p>
+        </div>
+
+        <!-- Assignments Card -->
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 group hover:border-brand-500/50 transition duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                </div>
+                <span class="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-lg">Update</span>
+            </div>
+            <h4 class="text-slate-500 text-sm font-semibold mb-1">Materi & Tugas</h4>
+            <div class="text-3xl font-black text-slate-900 tracking-tight">{{ $totalTugas }}</div>
+            <p class="text-slate-400 text-xs mt-3 font-medium">Total tugas diunggah</p>
+        </div>
+
+        <!-- Attendance Card -->
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 group hover:border-brand-500/50 transition duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-cyan-50 rounded-2xl flex items-center justify-center text-cyan-600 group-hover:scale-110 transition duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <span class="text-xs font-bold text-cyan-500 bg-cyan-50 px-2 py-1 rounded-lg">Hari Ini</span>
+            </div>
+            <h4 class="text-slate-500 text-sm font-semibold mb-1">Presensi</h4>
+            <div class="text-3xl font-black text-slate-900 tracking-tight">{{ $presensiHariIni }}</div>
+            <p class="text-slate-400 text-xs mt-3 font-medium">Siswa hadir hari ini</p>
+        </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="icon yellow" aria-hidden="true"><span data-lucide="clipboard-list"></span></div>
-    <div>
-      <p class="stat-title">Total Tugas</p>
-      <p class="stat-value">{{ $totalTugas }}</p>
+    <!-- Chart Section -->
+    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+            <div>
+                <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">Tren Aktivitas Pembelajaran</h3>
+                <p class="text-sm text-slate-500 font-medium">Statistik harian tugas dan absensi</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 bg-brand-500 rounded-full"></span>
+                    <span class="text-xs font-bold text-slate-600">Tugas</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                    <span class="text-xs font-bold text-slate-600">Absensi</span>
+                </div>
+            </div>
+        </div>
+        <div class="h-80 w-full">
+            <canvas id="aktivitasChart"></canvas>
+        </div>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="icon red" aria-hidden="true"><span data-lucide="calendar"></span></div>
-    <div>
-      <p class="stat-title">Presensi Hari Ini</p>
-      <p class="stat-value">{{ $presensiHariIni }}</p>
-    </div>
-  </div>
-</div>
-
-<div class="chart-wrap">
-  <div class="chart-head">
-    <h2>Grafik Aktivitas Harian</h2>
-    <div class="small-muted">Perbandingan tugas dan absensi</div>
-  </div>
-  <div class="canvas-container">
-    <canvas id="aktivitasChart" aria-label="Grafik Aktivitas Harian" role="img"></canvas>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-lucide.createIcons();
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('aktivitasChart').getContext('2d');
+        
+        // Gradient for Tugas
+        const tugasGradient = ctx.createLinearGradient(0, 0, 0, 400);
+        tugasGradient.addColorStop(0, 'rgba(14, 165, 233, 0.2)');
+        tugasGradient.addColorStop(1, 'rgba(14, 165, 233, 0)');
 
-const ctx = document.getElementById('aktivitasChart').getContext('2d');
-new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: {!! json_encode($labels) !!},
-    datasets: [
-      {
-        label: 'Tugas',
-        data: {!! json_encode($dataTugas) !!},
-        borderColor: 'rgba(59,130,246,1)',
-        backgroundColor: 'rgba(59,130,246,0.12)',
-        fill: true,
-        tension: 0.36,
-        pointRadius: 4,
-        pointBackgroundColor: 'rgba(59,130,246,1)'
-      },
-      {
-        label: 'Absensi',
-        data: {!! json_encode($dataAbsensi) !!},
-        borderColor: 'rgba(34,197,94,1)',
-        backgroundColor: 'rgba(34,197,94,0.12)',
-        fill: true,
-        tension: 0.36,
-        pointRadius: 4,
-        pointBackgroundColor: 'rgba(34,197,94,1)'
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'top' } },
-    scales: { y: { beginAtZero: true } }
-  }
-});
+        // Gradient for Absensi
+        const absensiGradient = ctx.createLinearGradient(0, 0, 0, 400);
+        absensiGradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+        absensiGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($labels) !!},
+                datasets: [
+                    {
+                        label: 'Tugas',
+                        data: {!! json_encode($dataTugas) !!},
+                        borderColor: '#0ea5e9',
+                        borderWidth: 3,
+                        backgroundColor: tugasGradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#0ea5e9',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Absensi',
+                        data: {!! json_encode($dataAbsensi) !!},
+                        borderColor: '#10b981',
+                        borderWidth: 3,
+                        backgroundColor: absensiGradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#10b981',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [5, 5], color: '#f1f5f9' },
+                        ticks: { font: { family: 'Inter', weight: '500' }, color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Inter', weight: '500' }, color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    });
 </script>
 @endsection

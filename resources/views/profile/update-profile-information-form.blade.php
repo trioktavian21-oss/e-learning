@@ -10,7 +10,7 @@
     <x-slot name="form">
         <!-- Profile Photo -->
         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-            <div x-data="{photoName: null, photoPreview: null}" class="col-span-6 sm:col-span-4">
+            <div x-data="{photoName: null, photoPreview: null}" class="col-span-6">
                 <!-- Profile Photo File Input -->
                 <input type="file" id="photo" class="hidden"
                             wire:model.live="photo"
@@ -24,29 +24,36 @@
                                     reader.readAsDataURL($refs.photo.files[0]);
                             " />
 
-                <x-label for="photo" value="{{ __('Photo') }}" />
+                <x-label for="photo" value="{{ __('Foto Profil') }}" />
 
-                <!-- Current Profile Photo -->
-                <div class="mt-2" x-show="! photoPreview">
-                    <img src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}" class="rounded-full h-20 w-20 object-cover">
+                <div class="flex items-center space-x-6 mt-4">
+                    <!-- Current Profile Photo -->
+                    <div class="relative group" x-show="! photoPreview">
+                        <img src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}" class="rounded-[2rem] h-24 w-24 object-cover border-4 border-white shadow-xl ring-1 ring-slate-100 transition duration-500 group-hover:scale-105">
+                        <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-brand-600 rounded-xl shadow-lg flex items-center justify-center text-white border-2 border-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- New Profile Photo Preview -->
+                    <div class="relative" x-show="photoPreview" style="display: none;">
+                        <span class="block rounded-[2rem] w-24 h-24 bg-cover bg-no-repeat bg-center border-4 border-white shadow-xl ring-1 ring-brand-500"
+                              x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col space-y-2">
+                        <x-secondary-button type="button" x-on:click.prevent="$refs.photo.click()" class="!rounded-xl !text-[9px] !bg-brand-50 !text-brand-600 !border-brand-100">
+                            {{ __('Unggah Foto Baru') }}
+                        </x-secondary-button>
+
+                        @if ($this->user->profile_photo_path)
+                            <x-secondary-button type="button" wire:click="deleteProfilePhoto" class="!rounded-xl !text-[9px] !bg-rose-50 !text-rose-600 !border-rose-100">
+                                {{ __('Hapus Foto') }}
+                            </x-secondary-button>
+                        @endif
+                    </div>
                 </div>
-
-                <!-- New Profile Photo Preview -->
-                <div class="mt-2" x-show="photoPreview" style="display: none;">
-                    <span class="block rounded-full w-20 h-20 bg-cover bg-no-repeat bg-center"
-                          x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
-                    </span>
-                </div>
-
-                <x-secondary-button class="mt-2 me-2" type="button" x-on:click.prevent="$refs.photo.click()">
-                    {{ __('Select A New Photo') }}
-                </x-secondary-button>
-
-                @if ($this->user->profile_photo_path)
-                    <x-secondary-button type="button" class="mt-2" wire:click="deleteProfilePhoto">
-                        {{ __('Remove Photo') }}
-                    </x-secondary-button>
-                @endif
 
                 <x-input-error for="photo" class="mt-2" />
             </div>
