@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>E-Learning - Cerdas Bersama Kami</title>
+    <title>SmartStudy - Cerdas Bersama Kami</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,6 +11,7 @@
     
     <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -61,27 +62,63 @@
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+    <x-loading-overlay />
 
     <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 glass">
+    <nav x-data="{ mobileMenu: false }" class="fixed top-0 w-full z-50 glass">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+            <div class="flex justify-between items-center h-20">
                 <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-brand-500/50">E</div>
-                    <span class="text-xl font-bold tracking-tight">E-Learning</span>
+                    <div class="w-10 h-10 bg-brand-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-brand-500/50">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                    <span class="text-2xl font-black tracking-tighter text-white">SmartStudy</span>
                 </div>
-                <div class="flex items-center space-x-4">
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#fitur" class="text-sm font-bold text-slate-300 hover:text-white transition uppercase tracking-widest">Fitur</a>
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="text-sm font-medium hover:text-brand-400 transition">Dashboard</a>
+                            <a href="{{ url('/dashboard') }}" class="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-2xl text-sm font-black transition border border-white/10 uppercase tracking-widest">Dashboard</a>
                         @else
-                            <a href="{{ route('login') }}" class="text-sm font-medium hover:text-brand-400 transition">Masuk</a>
+                            <a href="{{ route('login') }}" class="text-sm font-black text-slate-300 hover:text-white transition uppercase tracking-widest">Masuk</a>
                             @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-full text-sm font-semibold transition shadow-lg shadow-brand-600/30">Daftar Sekarang</a>
+                                <a href="{{ route('register') }}" class="px-8 py-4 bg-brand-600 hover:bg-brand-500 rounded-2xl text-sm font-black transition shadow-xl shadow-brand-600/40 uppercase tracking-widest">Daftar</a>
                             @endif
                         @endauth
                     @endif
                 </div>
+
+                <!-- Mobile Toggle -->
+                <button @click="mobileMenu = !mobileMenu" class="md:hidden p-2 text-slate-300 hover:text-white transition">
+                    <svg x-show="!mobileMenu" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    <svg x-show="mobileMenu" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenu" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-4"
+             class="md:hidden border-t border-white/10 bg-slate-900/95 backdrop-blur-xl" x-cloak>
+            <div class="px-6 py-8 space-y-6">
+                <a href="#fitur" @click="mobileMenu = false" class="block text-lg font-bold text-slate-300 hover:text-white transition capitalize">Fitur Platform</a>
+                @if (Route::has('login'))
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="block px-6 py-4 bg-white/5 rounded-2xl text-lg font-bold text-center border border-white/10">Ke Dashboard</a>
+                    @else
+                        <div class="grid grid-cols-2 gap-4 pt-4">
+                            <a href="{{ route('login') }}" class="flex items-center justify-center px-6 py-4 bg-slate-800 rounded-2xl font-bold transition">Masuk</a>
+                            <a href="{{ route('register') }}" class="flex items-center justify-center px-6 py-4 bg-brand-600 rounded-2xl font-bold transition">Daftar</a>
+                        </div>
+                    @endauth
+                @endif
             </div>
         </div>
     </nav>
@@ -136,7 +173,7 @@
         <section id="fitur" class="py-24 px-6 bg-slate-950">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center space-y-4 mb-16">
-                    <h2 class="text-3xl lg:text-4xl font-bold">Kenapa Memilih E-Learning?</h2>
+                    <h2 class="text-3xl lg:text-4xl font-bold">Kenapa Memilih SmartStudy?</h2>
                     <p class="text-slate-400 max-w-2xl mx-auto">Dirancang untuk memberikan pengalaman belajar terbaik dengan fitur-fitur unggulan yang intuitif.</p>
                 </div>
                 <div class="grid md:grid-cols-3 gap-8">
@@ -171,10 +208,12 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-8 md:space-y-0">
             <div class="space-y-4">
                 <div class="flex items-center space-x-2">
-                    <div class="w-6 h-6 bg-brand-500 rounded flex items-center justify-center font-bold text-white text-xs">E</div>
-                    <span class="text-lg font-bold">E-Learning</span>
+                    <div class="w-6 h-6 bg-brand-500 rounded flex items-center justify-center text-white text-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                    <span class="text-lg font-bold">SmartStudy</span>
                 </div>
-                <p class="text-slate-500 text-sm max-w-xs">&copy; {{ date('Y') }} E-Learning. Membangun masa depan melalui pendidikan digital.</p>
+                <p class="text-slate-500 text-sm max-w-xs">&copy; {{ date('Y') }} SmartStudy. Membangun masa depan melalui pendidikan digital.</p>
             </div>
             
             <div class="flex space-x-6">

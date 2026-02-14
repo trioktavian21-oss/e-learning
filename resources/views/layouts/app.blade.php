@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-    <title>{{ config('app.name', 'SmartStudy Portal') }}</title>
+    <title>SmartStudy Portal</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,7 @@
 
     <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -44,6 +45,7 @@
     @livewireStyles
 </head>
 <body class="antialiased bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
+    <x-loading-overlay />
     <div class="min-h-screen relative">
         <!-- Background Decorations -->
         <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">

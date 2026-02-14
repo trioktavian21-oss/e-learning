@@ -73,6 +73,7 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased font-sans h-screen flex flex-col overflow-hidden relative">
+    <x-loading-overlay />
     
     <!-- Background Decorations -->
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
