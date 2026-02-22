@@ -44,4 +44,4 @@ EXPOSE 8000
 
 # 11. Jalankan Laravel dengan port yang diberikan oleh Railway
 # Jika variabel PORT tidak ada, default ke 8000
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+CMD php artisan serve --host=0.0.0.0 --port=8080
