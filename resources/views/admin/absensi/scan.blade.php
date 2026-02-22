@@ -136,6 +136,8 @@
 
         let scanning = false;
         let videoStream;
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
 
         startButton.addEventListener('click', () => {
             scanning ? stopScan() : startScan();
@@ -160,10 +162,12 @@
                     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
                     if (code) {
-                        sendToServer(code.data);
+                        const scannedData = code.data.trim();
+                        console.log("QR Code Scanned from File:", scannedData);
+                        sendToServer(scannedData);
                     } else {
                         result.className = 'mt-6 text-sm font-bold text-rose-500 uppercase tracking-widest';
-                        result.textContent = "Gagal membaca QR Code.";
+                        result.textContent = "Gagal membaca QR Code dari gambar.";
                     }
                 };
                 img.src = event.target.result;
@@ -201,8 +205,6 @@
             if (!scanning) return;
 
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -210,8 +212,11 @@
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
 
                 if (code) {
+                    const scannedData = code.data.trim();
+                    console.log("QR Code Scanned:", scannedData);
                     stopScan();
-                    sendToServer(code.data);
+                    sendToServer(scannedData);
+                    return; // Stop the loop immediately
                 }
             }
             requestAnimationFrame(tick);

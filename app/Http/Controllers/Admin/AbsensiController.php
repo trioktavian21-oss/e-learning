@@ -88,7 +88,9 @@ class AbsensiController extends Controller
             'user_id' => 'required|string',
         ]);
 
-        $nisnOrId = $request->user_id;
+        $nisnOrId = trim($request->user_id);
+        \Illuminate\Support\Facades\Log::info('QR Scan Received:', ['data' => $nisnOrId]);
+
         $today = Carbon::today()->toDateString();
         $jam = Carbon::now()->toTimeString();
 
@@ -107,7 +109,7 @@ class AbsensiController extends Controller
         if (!$sudahAbsen) {
             Presensi::create([
                 'user_id' => $user->id,
-                'tanggal' => $today,               // simpan sebagai 'YYYY-MM-DD'
+                'tanggal' => $today, // simpan sebagai 'YYYY-MM-DD'
                 'jam' => $jam,
                 'aksi' => 'hadir',
                 'keterangan' => 'Scan QR Code',
