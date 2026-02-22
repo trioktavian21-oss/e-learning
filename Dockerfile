@@ -44,4 +44,5 @@ EXPOSE 8000
 
 # 11. Jalankan Laravel dengan port yang diberikan oleh Railway
 # Jika variabel PORT tidak ada, default ke 8000
-CMD php artisan serve --host=0.0.0.0 --port=8080
+# Ganti baris CMD terakhir di Dockerfile kamu menjadi:
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
