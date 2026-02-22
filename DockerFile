@@ -11,8 +11,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     gnupg
 
-# 2. Install Node.js & NPM versi 20 (LTS) dari NodeSource
-# Ini akan memastikan perintah 'npm' tersedia
+# 2. Install Node.js & NPM versi 20
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
@@ -30,13 +29,13 @@ COPY . .
 # 6. Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# 7. Install Node dependencies (Gunakan 'install' jika 'ci' gagal karena package-lock)
+# 7. Install Node dependencies
 RUN npm install
 
-# 8. Build assets (Vite atau Mix)
+# 8. Build assets
 RUN npm run build
 
-# 9. Set Permission Laravel
+# 9. Set Permission
 RUN chmod -R 777 storage bootstrap/cache
 
 EXPOSE 8000
