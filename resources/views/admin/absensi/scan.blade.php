@@ -135,6 +135,7 @@
         const scannedUserContainer = document.getElementById('scannedUserContainer');
 
         let scanning = false;
+        let isProcessing = false;
         let videoStream;
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -176,6 +177,7 @@
                     if (code) {
                         const scannedData = code.data.trim();
                         console.log("QR Code Scanned from File:", scannedData);
+                        isProcessing = true;
                         sendToServer(scannedData);
                     } else {
                         result.className = 'mt-6 text-sm font-bold text-rose-500 uppercase tracking-widest';
@@ -214,7 +216,7 @@
         }
 
         function tick() {
-            if (!scanning) return;
+            if (!scanning || isProcessing) return;
 
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvas.width = video.videoWidth;
@@ -226,9 +228,10 @@
                 if (code) {
                     const scannedData = code.data.trim();
                     console.log("QR Code Scanned:", scannedData);
-                    stopScan();
+                    isProcessing = true;
+                    // stopScan(); // REMOVED: keep camera active
                     sendToServer(scannedData);
-                    return; // Stop the loop immediately
+                    return; 
                 }
             }
             requestAnimationFrame(tick);
@@ -303,6 +306,16 @@
                 
                 result.className = 'mt-6 text-sm font-bold text-rose-500 uppercase tracking-widest';
                 result.textContent = msg;
+            })
+            .finally(() => {
+                // Cooldown 3 seconds before next scan
+                setTimeout(() => {
+                    isProcessing = false;
+                    if (scanning) {
+                        result.className = 'mt-6 text-sm font-bold text-brand-500 animate-pulse uppercase tracking-widest';
+                        result.textContent = 'SIAP SCAN BERIKUTNYA...';
+                    }
+                }, 3000);
             });
         }
     });
