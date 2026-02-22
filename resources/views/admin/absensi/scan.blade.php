@@ -156,18 +156,30 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    context.drawImage(img, 0, 0);
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    
+                    // Scale down if image is too large for jsQR
+                    const maxDim = 1000;
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxDim || height > maxDim) {
+                        const ratio = Math.min(maxDim / width, maxDim / height);
+                        width *= ratio;
+                        height *= ratio;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    context.drawImage(img, 0, 0, width, height);
+                    const imageData = context.getImageData(0, 0, width, height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
                     if (code) {
                         const scannedData = code.data.trim();
                         console.log("QR Code Scanned from File:", scannedData);
                         sendToServer(scannedData);
                     } else {
                         result.className = 'mt-6 text-sm font-bold text-rose-500 uppercase tracking-widest';
-                        result.textContent = "Gagal membaca QR Code dari gambar.";
+                        result.textContent = "Gagal membaca QR Code dari gambar. Pastikan gambar jelas.";
                     }
                 };
                 img.src = event.target.result;
@@ -226,17 +238,39 @@
             result.className = 'mt-6 text-sm font-bold text-brand-400 animate-pulse uppercase tracking-widest';
             result.textContent = 'MEMPROSES DATA...';
             
-            fetch("{{ route('admin.absensi.scan.store') }}", {
+            // Generate URL: switch to relative if current host doesn't match APP_URL
+            let targetUrl = "{{ route('admin.absensi.scan.store') }}";
+            
+            // Force HTTPS if the current page is HTTPS
+            if (window.location.protocol === 'https:' && targetUrl.startsWith('http:')) {
+                targetUrl = targetUrl.replace('http:', 'https:');
+            }
+            
+            const currentHost = window.location.host;
+            const urlObj = new URL(targetUrl);
+            if (urlObj.host !== currentHost) {
+                // If there's a mismatch (likely local vs production), use relative path
+                targetUrl = urlObj.pathname + urlObj.search;
+                console.warn("Domain mismatch detected. Using relative URL:", targetUrl);
+            }
+            
+            fetch(targetUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({ user_id: userId })
             })
             .then(async res => {
-                const json = await res.json().catch(()=>null);
-                if (!res.ok) throw { status: res.status, body: json };
+                const text = await res.text();
+                let json = null;
+                try {
+                    json = JSON.parse(text);
+                } catch(e) {}
+                
+                if (!res.ok) throw { status: res.status, body: json, raw: text };
                 return json;
             })
             .then(data => {
@@ -254,8 +288,19 @@
                 }
             })
             .catch(err => {
+                console.error("Scan Process Error:", err);
                 let msg = 'Gagal memproses QR';
-                if (err && err.body && err.body.message) msg = err.body.message;
+                
+                if (err.status) {
+                    if (err.status === 404 && err.body && err.body.message) {
+                        msg = err.body.message; // "User tidak ditemukan"
+                    } else if (err.status === 419) {
+                        msg = "Sesi kadaluarsa, silakan refresh halaman.";
+                    } else {
+                        msg = `Error Server (${err.status})`;
+                    }
+                }
+                
                 result.className = 'mt-6 text-sm font-bold text-rose-500 uppercase tracking-widest';
                 result.textContent = msg;
             });
