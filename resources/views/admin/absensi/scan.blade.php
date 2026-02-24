@@ -207,22 +207,23 @@
             }
         }
 
-        function handleStream(stream) {
+        async function handleStream(stream) {
             scanning = true;
             startButton.innerHTML = '<span class="flex items-center"><svg class="w-5 h-5 mr-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path></svg> BERHENTI SCAN</span>';
             startButton.className = 'flex-grow inline-flex items-center justify-center px-8 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-black transition shadow-xl shadow-rose-600/40';
+            
             videoStream = stream;
             video.srcObject = stream;
             video.setAttribute('playsinline', true);
             
-            // Catch play interruptions (AbortError)
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.warn("Video play interrupted or failed:", error);
-                });
+            // Gunakan try-catch untuk play() agar tidak crash jika terjadi interupsi
+            try {
+                await video.play();
+                // Mulai loop scan HANYA setelah video benar-benar berputar
+                requestAnimationFrame(tick);
+            } catch (error) {
+                console.warn("Video play interrupted:", error);
             }
-            tick();
         }
 
         function showCameraError(err) {
@@ -260,22 +261,27 @@
         }
 
         function tick() {
-            if (!scanning || isProcessing) return;
+            // Tambahkan pengecekan video.paused
+            if (!scanning || isProcessing || video.paused || video.ended) {
+                if (scanning && !isProcessing) requestAnimationFrame(tick);
+                return;
+            }
 
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
 
                 if (code) {
                     const scannedData = code.data.trim();
-                    console.log("QR Code Scanned:", scannedData);
                     isProcessing = true;
-                    // stopScan(); // REMOVED: keep camera active
                     sendToServer(scannedData);
-                    return; 
+                    // Jangan return di sini, biarkan loop diatur oleh isProcessing
                 }
             }
             requestAnimationFrame(tick);
