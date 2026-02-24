@@ -190,21 +190,53 @@
         }
 
         function startScan() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(stream => {
-                    scanning = true;
-                    startButton.innerHTML = '<span class="flex items-center"><svg class="w-5 h-5 mr-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path></svg> BERHENTI SCAN</span>';
-                    startButton.className = 'flex-grow inline-flex items-center justify-center px-8 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-black transition shadow-xl shadow-rose-600/40';
-                    videoStream = stream;
-                    video.srcObject = stream;
-                    video.setAttribute('playsinline', true);
-                    video.play();
-                    tick();
-                })
+            const constraints = { video: { facingMode: 'user' } };
+            
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(handleStream)
                 .catch(err => {
-                    result.className = 'mt-6 text-sm font-bold text-rose-500 uppercase tracking-widest';
-                    result.textContent = 'Gagal akses kamera: ' + err;
+                    console.warn("Attempt 1 failed:", err);
+                    // Fallback to simple video if environment mode fails
+                    return navigator.mediaDevices.getUserMedia({ video: true });
+                })
+                .then(handleStream)
+                .catch(err => {
+                    console.error("Camera access error:", err);
+                    showCameraError(err);
                 });
+        }
+
+        function handleStream(stream) {
+            scanning = true;
+            startButton.innerHTML = '<span class="flex items-center"><svg class="w-5 h-5 mr-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path></svg> BERHENTI SCAN</span>';
+            startButton.className = 'flex-grow inline-flex items-center justify-center px-8 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-black transition shadow-xl shadow-rose-600/40';
+            videoStream = stream;
+            video.srcObject = stream;
+            video.setAttribute('playsinline', true);
+            video.play();
+            tick();
+        }
+
+        function showCameraError(err) {
+            result.className = 'mt-6 text-sm font-bold text-rose-500 uppercase tracking-widest';
+            
+            if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                result.innerHTML = `
+                    <div class="bg-rose-50 border border-rose-100 p-4 rounded-2xl text-rose-800 normal-case font-normal text-left">
+                        <strong class="block mb-1 font-black uppercase text-xs tracking-wider">Kamera Tidak Dapat Diakses (Device in use)</strong>
+                        <p class="mb-2 text-xs">Aplikasi lain mungkin sedang menggunakan kamera Anda (Zoom, WhatsApp Desktop, dll).</p>
+                        <ul class="list-disc ml-4 space-y-1 text-[11px] font-bold">
+                            <li>Tutup aplikasi lain yang menggunakan kamera</li>
+                            <li>Pastikan browser memiliki izin di pengaturan Windows/macOS</li>
+                            <li>Coba muat ulang halaman atau restart browser</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                result.textContent = 'Izin kamera ditolak. Harap izinkan akses kamera di browser.';
+            } else {
+                result.textContent = 'Gagal akses kamera: ' + err.message;
+            }
         }
 
         function stopScan() {
@@ -212,7 +244,11 @@
             startButton.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg> MULAI SCAN';
             startButton.className = 'flex-grow inline-flex items-center justify-center px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-black transition shadow-xl shadow-brand-600/40';
             video.pause();
-            if (videoStream) videoStream.getTracks().forEach(t => t.stop());
+            if (videoStream) {
+                videoStream.getTracks().forEach(t => t.stop());
+                videoStream = null;
+            }
+            video.srcObject = null;
         }
 
         function tick() {
