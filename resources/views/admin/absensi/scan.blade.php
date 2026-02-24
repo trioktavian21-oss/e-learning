@@ -189,21 +189,22 @@
             reader.readAsDataURL(file);
         }
 
-        function startScan() {
-            const constraints = { video: { facingMode: 'user' } };
-            
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(handleStream)
-                .catch(err => {
-                    console.warn("Attempt 1 failed:", err);
-                    // Fallback to simple video if environment mode fails
-                    return navigator.mediaDevices.getUserMedia({ video: true });
-                })
-                .then(handleStream)
-                .catch(err => {
-                    console.error("Camera access error:", err);
-                    showCameraError(err);
-                });
+        async function startScan() {
+            try {
+                // Attempt 1: Preferred camera
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                handleStream(stream);
+            } catch (err) {
+                console.warn("Attempt 1 (front camera) failed:", err);
+                try {
+                    // Attempt 2: Fallback to any camera
+                    const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    handleStream(fallbackStream);
+                } catch (fallbackErr) {
+                    console.error("All camera access attempts failed:", fallbackErr);
+                    showCameraError(fallbackErr);
+                }
+            }
         }
 
         function handleStream(stream) {
