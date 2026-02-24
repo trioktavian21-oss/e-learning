@@ -213,7 +213,14 @@
             videoStream = stream;
             video.srcObject = stream;
             video.setAttribute('playsinline', true);
-            video.play();
+            
+            // Catch play interruptions (AbortError)
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.warn("Video play interrupted or failed:", error);
+                });
+            }
             tick();
         }
 
