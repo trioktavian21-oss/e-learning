@@ -19,7 +19,15 @@
             <div class="relative z-10 flex flex-col items-center">
                 <!-- Camera Viewport -->
                 <div class="relative w-full aspect-video md:max-w-md bg-slate-900 rounded-3xl overflow-hidden border-4 border-slate-800 shadow-inner group-hover:border-brand-500/30 transition duration-500">
-                    <video id="video" class="w-full h-full object-cover transform scale-x-[-1]"></video>
+                    <video id="video" class="w-full h-full object-cover transform scale-x-[-1]" autoplay muted playsinline></video>
+                    
+                    <!-- Loading State Overlay -->
+                    <div id="cameraLoading" class="absolute inset-0 flex items-center justify-center bg-slate-900 z-50 hidden">
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                            <p class="text-white text-xs font-bold uppercase tracking-widest">Menyiapkan Kamera...</p>
+                        </div>
+                    </div>
                     
                     <!-- Scanner Overlay -->
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -136,11 +144,13 @@
 
         let scanning = false;
         let isProcessing = false;
+        let isInitializing = false;
         let videoStream;
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d', { willReadFrequently: true });
 
         startButton.addEventListener('click', () => {
+            if (isInitializing) return;
             scanning ? stopScan() : startScan();
         });
 
@@ -190,20 +200,38 @@
         }
 
         async function startScan() {
+            if (isInitializing) return;
+            isInitializing = true;
+            
+            console.log("Starting camera scan process...");
+            const loadingOverlay = document.getElementById('cameraLoading');
+            loadingOverlay.classList.remove('hidden');
+            result.textContent = "";
+
             try {
-                // Attempt 1: Preferred camera
+                // Pre-stop any existing stream just in case
+                if (videoStream) {
+                    videoStream.getTracks().forEach(t => t.stop());
+                }
+
+                console.log("Attempting front camera (user)...");
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                handleStream(stream);
+                console.log("Front camera access granted.");
+                await handleStream(stream);
             } catch (err) {
                 console.warn("Attempt 1 (front camera) failed:", err);
                 try {
-                    // Attempt 2: Fallback to any camera
+                    console.log("Attempting fallback camera (any)...");
                     const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    handleStream(fallbackStream);
+                    console.log("Fallback camera access granted.");
+                    await handleStream(fallbackStream);
                 } catch (fallbackErr) {
                     console.error("All camera access attempts failed:", fallbackErr);
                     showCameraError(fallbackErr);
                 }
+            } finally {
+                loadingOverlay.classList.add('hidden');
+                isInitializing = false;
             }
         }
 
@@ -231,13 +259,19 @@
             
             if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
                 result.innerHTML = `
-                    <div class="bg-rose-50 border border-rose-100 p-4 rounded-2xl text-rose-800 normal-case font-normal text-left">
-                        <strong class="block mb-1 font-black uppercase text-xs tracking-wider">Kamera Tidak Dapat Diakses (Device in use)</strong>
-                        <p class="mb-2 text-xs">Aplikasi lain mungkin sedang menggunakan kamera Anda (Zoom, WhatsApp Desktop, dll).</p>
-                        <ul class="list-disc ml-4 space-y-1 text-[11px] font-bold">
-                            <li>Tutup aplikasi lain yang menggunakan kamera</li>
-                            <li>Pastikan browser memiliki izin di pengaturan Windows/macOS</li>
-                            <li>Coba muat ulang halaman atau restart browser</li>
+                    <div class="bg-rose-50 border border-rose-100 p-5 rounded-3xl text-rose-800 normal-case font-normal text-left shadow-lg">
+                        <div class="flex items-center mb-3">
+                            <div class="w-8 h-8 bg-rose-500 rounded-full flex items-center justify-center text-white mr-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                            <strong class="font-black uppercase text-xs tracking-wider">Kamera Terkunci (Device in use)</strong>
+                        </div>
+                        <p class="mb-3 text-[11px] leading-relaxed">Kamera Anda sedang digunakan aplikasi lain atau diblokir sistem Windows.</p>
+                        <ul class="space-y-2 text-[11px] font-bold text-rose-700">
+                            <li class="flex items-start"><span class="mr-2">1.</span> Tutup Zoom, WhatsApp, atau tab browser lain.</li>
+                            <li class="flex items-start"><span class="mr-2">2.</span> Buka <strong>Settings > Privacy > Camera</strong> di Windows, pastikan akses lzin diberikan.</li>
+                            <li class="flex items-start"><span class="mr-2">3.</span> Matikan lalu nyalakan kembali izin kamera untuk Chrome.</li>
+                            <li class="flex items-start"><span class="mr-2">4.</span> Restart Browser atau Laptop Anda.</li>
                         </ul>
                     </div>
                 `;
