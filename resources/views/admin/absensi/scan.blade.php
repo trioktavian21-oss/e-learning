@@ -138,7 +138,7 @@
         let isProcessing = false;
         let videoStream;
         const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
 
         startButton.addEventListener('click', () => {
             scanning ? stopScan() : startScan();
@@ -156,7 +156,7 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
+                    const context = canvas.getContext('2d', { willReadFrequently: true });
                     
                     // Scale down if image is too large for jsQR
                     const maxDim = 1000;
